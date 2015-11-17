@@ -2,15 +2,15 @@
   "name": "markdown-scroll",
   "main": "./lib/main",
   "version": "0.1.0",
-  "description": "Auto-scroll markdown-preview tab to match markdown source",
+  "description": "Auto-scroll markdown-preview to match markdown source",
   "repository": "https://github.com/mark-hahn/markdown-scroll",
   "license": "MIT",
   "engines": {
     "atom": ">1.0.0"
   },
   "dependencies": {
-    "space-pen": "*",
-    "sub-atom":  "*",
-    "roaster": "^1.1.2"
+    "escape-string-regexp": "^1.0.3",
+    "fs-plus": "^2.8.1",
+    "sub-atom": "*"
   }
 }

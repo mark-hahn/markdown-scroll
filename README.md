@@ -1,6 +1,6 @@
 # markdown-scroll Atom editor package
 
-Auto-scroll markdown-preview tab to match markdown source.  See the project at [github](https://github.com/mark-hahn/markdown-scroll).
+Auto-scroll markdown-preview tab to match markdown source.
 
 ---
 
@@ -8,7 +8,11 @@ Auto-scroll markdown-preview tab to match markdown source.  See the project at [
 
 ---
 
-### Usage:
+### Background
+
+This is a rewrite of the `markdown-scroll-sync` package. This is smarter in that it only matches needed points in the file and then smoothly interpolates the position.
+
+### Usage
 
 There is no atom command or keybinding. There are no config settings.
 
@@ -19,7 +23,3 @@ When the markdown file is scrolled the preview is automatically scrolled to matc
 ### License
 
 Copyright Mark Hahn by MIT license.
-
-### Advertisement.  
-
-See other packages by mark-hahn at https://atom.io/users/mark-hahn/packages?direction=desc&sort=downloads.
