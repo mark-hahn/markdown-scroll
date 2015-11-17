@@ -53,7 +53,7 @@ class MarkdownScrl
     @subs2.add @editor    .onDidDestroy           => @stopTracking()
     @changed()
   
-  changed: -> @setMap(); @chkScroll()
+  changed: -> @setMap(); @chkScroll yes
   
   findWordsRegex: (bufRow) ->
     getWordsRegex = (matches) =>
@@ -81,26 +81,30 @@ class MarkdownScrl
       wlkr = document.createTreeWalker @previewEle, NodeFilter.SHOW_TEXT, null, yes
       while (node = wlkr.nextNode()) 
         if wordsRegex.test node.textContent
-          {start:{row:scrnRow1},end:{row:scrnRow2}} =
+          {start:{row:topRow},end:{row:botRow}} =
               @editor.screenRangeForBufferRange [[bufRow,0],[bufRow,Infinity]]
-          {top, bottom} = node.parentNode.getBoundingClientRect()
-          @map.push [scrnRow1, scrnRow2, top, bottom]
+          topPix = node.parentNode.offsetTop
+          botPix = topPix + node.parentNode.offsetHeight
+          # bufRow and node.textContent are for DEBUG
+          @map.push [topRow, botRow, topPix, botPix, bufRow, node.textContent]
           return
   
   setMap: ->
     if not @editor.alive then @stopTracking(); return
     @previewText = @previewEle.textContent
-    lastScrnRow = @editor.getLastScreenRow()
-    {top, bottom} = @previewEle.getBoundingClientRect()
-    @map = [[0,0,0,0], [lastScrnRow, lastScrnRow, top, bottom]
+    lastRow = @editor.getLastScreenRow()
+    botPix = @previewEle.offsetHeight
+    @map = [[0,0,0,0], [lastRow, lastRow, botPix, botPix]]
     @editor.scan /```|\.gif|\.jpg|\.jpeg|\.png|\.webm|\.mkv|\.mpg|\.mpeg|\.avi/g, (res) =>
       {range:{start:{row:bufRow}}} = res
       @addToMap bufRow, -1
       @addToMap bufRow, +1
-    @map.sort()
-
-  chkScroll: ->    
+    @map.sort (a,b) -> (a[0]+a[1]) - (b[0]+b[1])
     
+  chkScroll: (changed) ->    
+    if not @editor.alive then @stopTracking(); return
+    log @map
+    @stopTracking()
       
   stopTracking: ->
     @subs2.dispose() if @subs2
