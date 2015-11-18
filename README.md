@@ -1,3 +1,4 @@
+
 # markdown-scroll Atom editor package
 
 Auto-scroll markdown-preview tab to match markdown source.
