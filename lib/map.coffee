@@ -7,48 +7,55 @@ log = (args...) ->
 
 module.exports =
 
-  setMap: ->
+  setMap: (getVis = yes) ->
     start = Date.now()
-
+    
+    if getVis 
+      @getVisTopHgtBot()
+      log 'getVisTopHgtBot time (ms):', Date.now() - start; start = Date.now()
+   
     @nodes = []
     wlkr = document.createTreeWalker @previewEle, NodeFilter.SHOW_TEXT, null, yes
     while (node = wlkr.nextNode())
       text = node.textContent
       if not /\w+/.test text then continue
-      topPix = node.parentNode.offsetTop
-      botPix = topPix + node.parentNode.scrollHeight
-      @nodes.push [topPix, botPix, null, null, text, null]
+      [top, hgt, bot] = @getEleTopHgtBot node.parentNode, no
+      @nodes.push [top, bot, null, null, text, null]
       
     log 'tree walk time (ms):', Date.now() - start; start = Date.now()
     
     nodePtr = 0
     for bufRow in [0..@editor.getLastBufferRow()]
       line = @editor.lineTextForBufferRow bufRow
-      if not (matches = line.match /[a-z0-9-\s]+/i) then continue
+      if not (matches = line.match /[a-z0-9-\s]+/ig) then continue
       maxLen = 0
       target = null
       for match in matches when /\w+/.test match
-        match = match.replace /^\s+|\s+$/, ''
+        match = match.replace /^\s+|\s+$/g, ''
         if match.length > maxLen
           maxLen = match.length
           target = match
       if target
-        for idx in [nodePtr...@nodes.length]
-          node = @nodes[idx]
+        nodeMatch = null
+        for node, idx in @nodes[nodePtr...]
           if node[4].includes target
-            {start:{row:topRow},end:{row:botRow}} =
-              @editor.screenRangeForBufferRange [[bufRow, 0],[bufRow, 9e9]]
-            node[2] = topRow
-            node[3] = botRow
-            node[5] = target  # DEBUG
-            nodePtr = idx + 1
-            break
-            
+            if nodeMatch then nodeMatch = 'dup'; break
+            nodeMatch = node
+            idxMatch = idx
+        if not nodeMatch or nodeMatch is 'dup' then continue
+        {start:{row:topRow},end:{row:botRow}} =
+          @editor.screenRangeForBufferRange [[bufRow, 0],[bufRow, 9e9]]
+        nodeMatch[2] = topRow
+        nodeMatch[3] = botRow
+        nodeMatch[5] = target  # DEBUG
+        nodePtr = idxMatch
+        
     log 'node match time (ms):', Date.now() - start; start = Date.now()
     
     @map = [[0,0,0,0]]
     lastTopPix = lastBotPix = lastTopRow = lastBotRow = 0
     firstNode = yes
+    
     addNodeToMap = (node) =>
       [topPix, botPix, topRow, botRow] = node
       if topPix <  lastBotPix or
@@ -76,7 +83,5 @@ module.exports =
     topRow = Math.min  botRow, lastBotRow + 1
     addNodeToMap [lastBotPix, @previewEle.scrollHeight, topRow, botRow]
               
-    @nodes = null
-    
     log 'map merge time (ms):', Date.now() - start; start = Date.now()
 

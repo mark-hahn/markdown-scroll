@@ -34,7 +34,7 @@ class MarkdownScrl
         for previewView in atom.workspace.getPaneItems() 
           if previewView instanceof MarkdownPreviewView and 
              previewView.editor is editor
-            @startTracking editor, previewView
+            setTimeout (=> @startTracking editor, previewView), 1000
             break
         null
 
@@ -50,7 +50,7 @@ class MarkdownScrl
     @chkScroll 'init'
     
     @subs2 = new SubAtom
-    @subs2.add @editor    .onDidStopChanging        (cb) => @setMap(); @chkScroll 'changed'; cb()
+    @subs2.add @editor    .onDidStopChanging             => @setMap(); @chkScroll 'changed'
     @subs2.add @editor    .onDidChangeCursorPosition (e) => @chkScroll 'cursorMoved', e
     @subs2.add @editorView.onDidChangeScrollTop          => @chkScroll 'newtop'
     @subs2.add @editor    .onDidDestroy                  => @stopTracking()
@@ -70,5 +70,6 @@ mix = (mixinName) ->
 
 mix 'map'
 mix 'scroll'
+mix 'utils'
 
 module.exports = new MarkdownScrl
