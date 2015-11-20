@@ -34,7 +34,7 @@ class MarkdownScrl
         for previewView in atom.workspace.getPaneItems() 
           if previewView instanceof MarkdownPreviewView and 
              previewView.editor is editor
-            setTimeout (=> @startTracking editor, previewView), 1000
+            @startTracking editor, previewView
             break
         null
 

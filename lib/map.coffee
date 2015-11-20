@@ -9,10 +9,11 @@ module.exports =
 
   setMap: (getVis = yes) ->
     start = Date.now()
+    timings = {}
     
     if getVis 
       @getVisTopHgtBot()
-      log 'getVisTopHgtBot time (ms):', Date.now() - start; start = Date.now()
+      timings['getVisTopHgtBot'] = Date.now() - start; start = Date.now()
    
     @nodes = []
     wlkr = document.createTreeWalker @previewEle, NodeFilter.SHOW_TEXT, null, yes
@@ -22,7 +23,7 @@ module.exports =
       [top, hgt, bot] = @getEleTopHgtBot node.parentNode, no
       @nodes.push [top, bot, null, null, text, null]
       
-    log 'tree walk time (ms):', Date.now() - start; start = Date.now()
+    timings['tree walk'] = Date.now() - start; start = Date.now()
     
     nodePtr = 0
     for bufRow in [0..@editor.getLastBufferRow()]
@@ -50,7 +51,7 @@ module.exports =
         nodeMatch[5] = target  # DEBUG
         nodePtr = idxMatch
         
-    log 'node match time (ms):', Date.now() - start; start = Date.now()
+    timings['node match'] = Date.now() - start; start = Date.now()
     
     @map = [[0,0,0,0]]
     lastTopPix = lastBotPix = lastTopRow = lastBotRow = 0
@@ -83,5 +84,7 @@ module.exports =
     topRow = Math.min  botRow, lastBotRow + 1
     addNodeToMap [lastBotPix, @previewEle.scrollHeight, topRow, botRow]
               
-    log 'map merge time (ms):', Date.now() - start; start = Date.now()
-
+    # timings['map merge'] = Date.now() - start; start = Date.now()
+    # str = ''
+    # for k, v of timings then str +=  '  ' + k + ': ' + v
+    # log 'timings', str

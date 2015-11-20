@@ -7,10 +7,10 @@ log = (args...) ->
 
 module.exports =
   
-  chkScroll: (event, e) -> 
+  chkScroll: (eventType, e) -> 
     if not @editor.alive then @stopTracking(); return
 
-    if event isnt 'changed'
+    if eventType isnt 'changed'
       @getVisTopHgtBot()
       if @scrnTopOfs    isnt @lastScrnTopOfs or
          @scrnBotOfs    isnt @lastScrnBotOfs or
@@ -21,11 +21,11 @@ module.exports =
         @lastPvwTopOfs  = @previewTopOfs
         @lastPvwBotOfs  = @previewBotOfs
         @setMap no
-      
+    
     # log '@nodes', @nodes  
     # log '@map', @map
     
-    switch event
+    switch eventType
       when 'init'
         cursorOfs  = @editor.getCursorScreenPosition().row * @chrHgt
         if @scrnTopOfs <= cursorOfs <= @scrnBotOfs 
@@ -36,14 +36,12 @@ module.exports =
         @setScroll @editor.getCursorScreenPosition().row * @chrHgt
       
       when 'newtop'
-        @lastScrnTopOfs ?= @scrnTopOfs + 1
-        if      @scrnTopOfs < @lastScrnTopOfs then @setScroll @scrnTopOfs
-        else if @scrnTopOfs > @lastScrnTopOfs then @setScroll @scrnBotOfs
-        @lastScrnTopOfs = @scrnTopOfs
+        @lastScrnTopval ?= @scrnTopOfs + 1
+        if      @scrnTopOfs < @lastScrnTopval then @setScroll @scrnTopOfs
+        else if @scrnTopOfs > @lastScrnTopval then @setScroll @scrnBotOfs
+        @lastScrnTopval = @scrnTopOfs
   
   setScroll: (scrnPosPix) ->
-    log 'setScroll', scrnPosPix
-    
     scrnPosPix = Math.max 0, scrnPosPix
     lastMapping = null
     for mapping, idx in @map
