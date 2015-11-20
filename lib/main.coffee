@@ -50,10 +50,10 @@ class MarkdownScrl
     @chkScroll 'init'
     
     @subs2 = new SubAtom
-    @subs2.add @editor    .onDidStopChanging             => @setMap(); @chkScroll 'changed'
-    @subs2.add @editor    .onDidChangeCursorPosition (e) => @chkScroll 'cursorMoved', e
-    @subs2.add @editorView.onDidChangeScrollTop          => @chkScroll 'newtop'
-    @subs2.add @editor    .onDidDestroy                  => @stopTracking()
+    @subs2.add @editor    .onDidStopChanging         => @setMap(); @chkScroll 'changed'
+    @subs2.add @editor    .onDidChangeCursorPosition => @chkScroll 'cursorMoved'
+    @subs2.add @editorView.onDidChangeScrollTop      => @chkScroll 'newtop'
+    @subs2.add @editor    .onDidDestroy              => @stopTracking()
     
   stopTracking: ->
     @subs2.dispose() if @subs2

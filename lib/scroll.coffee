@@ -7,7 +7,11 @@ log = (args...) ->
 
 module.exports =
   
-  chkScroll: (eventType, e) -> 
+  chkScroll: (eventType) -> 
+    if @scrollTimeout
+      clearTimeout @scrollTimeout
+      @scrollTimeout = null
+      
     if not @editor.alive then @stopTracking(); return
 
     if eventType isnt 'changed'
@@ -22,9 +26,6 @@ module.exports =
         @lastPvwBotOfs  = @previewBotOfs
         @setMap no
     
-    # log '@nodes', @nodes  
-    # log '@map', @map
-    
     switch eventType
       when 'init'
         cursorOfs  = @editor.getCursorScreenPosition().row * @chrHgt
@@ -36,10 +37,9 @@ module.exports =
         @setScroll @editor.getCursorScreenPosition().row * @chrHgt
       
       when 'newtop'
-        @lastScrnTopval ?= @scrnTopOfs + 1
-        if      @scrnTopOfs < @lastScrnTopval then @setScroll @scrnTopOfs
-        else if @scrnTopOfs > @lastScrnTopval then @setScroll @scrnBotOfs
-        @lastScrnTopval = @scrnTopOfs
+        scrollFrac = @scrnTopOfs / (@scrnScrollHgt - @scrnHeight)
+        @setScroll   @scrnTopOfs + (@scrnHeight * scrollFrac)
+        @scrollTimeout = setTimeout (=> @chkScroll 'newtop'), 300
   
   setScroll: (scrnPosPix) ->
     scrnPosPix = Math.max 0, scrnPosPix

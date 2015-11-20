@@ -21,7 +21,9 @@ module.exports =
     lines.sort()
     [firstRow, firstTopBnd] = lines[0]
     @scrnTopOfs = (firstRow * @chrHgt) - (firstTopBnd - @edtTopBnd)
-    @scrnBotOfs = @scrnTopOfs + (edtBotBnd - @edtTopBnd)
+    @scrnHeight = edtBotBnd - @edtTopBnd
+    @scrnBotOfs = @scrnTopOfs + @scrnHeight
+    @scrnScrollHgt = @editorView.getScrollHeight()
     
     {top: @pvwTopBnd, bottom: pvwBotBnd} = @previewEle.getBoundingClientRect()
     @previewTopOfs = @previewEle.scrollTop
