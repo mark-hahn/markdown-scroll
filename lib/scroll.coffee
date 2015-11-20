@@ -8,45 +8,42 @@ log = (args...) ->
 module.exports =
   
   chkScroll: (event, e) -> 
-    @getVisTopHgtBot()
-    
-    if @scrnTopOfs    isnt @lastScrnTopOfs or
-       @scrnBotOfs    isnt @lastScrnBotOfs or
-       @previewTopOfs isnt @lastPvwTopOfs  or
-       @previewBotOfs isnt @lastPvwBotOfs
-      @lastScrnTopOfs = @scrnTopOfs
-      @lastScrnBotOfs = @scrnBotOfs
-      @lastPvwTopOfs  = @previewTopOfs
-      @lastPvwBotOfs  = @previewBotOfs
-      @setMap no
+    if not @editor.alive then @stopTracking(); return
+
+    if event isnt 'changed'
+      @getVisTopHgtBot()
+      if @scrnTopOfs    isnt @lastScrnTopOfs or
+         @scrnBotOfs    isnt @lastScrnBotOfs or
+         @previewTopOfs isnt @lastPvwTopOfs  or
+         @previewBotOfs isnt @lastPvwBotOfs
+        @lastScrnTopOfs = @scrnTopOfs
+        @lastScrnBotOfs = @scrnBotOfs
+        @lastPvwTopOfs  = @previewTopOfs
+        @lastPvwBotOfs  = @previewBotOfs
+        @setMap no
       
     # log '@nodes', @nodes  
     # log '@map', @map
-     
-    if not @editor.alive then @stopTracking(); return
     
     switch event
       when 'init'
-        scrnTopRow = @editorView.getFirstVisibleScreenRow()
-        scrnBotRow = @editorView.getLastVisibleScreenRow()
-        cursorRow  = @editor.getCursorScreenPosition().row
-        if scrnTopRow <= cursorRow <= scrnBotRow 
-             @setScroll cursorRow  * @chrHgt
-        else @setScroll scrnTopRow * @chrHgt
+        cursorOfs  = @editor.getCursorScreenPosition().row * @chrHgt
+        if @scrnTopOfs <= cursorOfs <= @scrnBotOfs 
+             @setScroll cursorOfs
+        else @setScroll @scrnTopOfs
           
       when 'changed', 'cursorMoved'
         @setScroll @editor.getCursorScreenPosition().row * @chrHgt
       
       when 'newtop'
-        scrollTop = @editorView.getScrollTop()
-        @lastScrollTop ?= scrollTop + 1
-        if scrollTop < @lastScrollTop
-          @setScroll @editorView.getFirstVisibleScreenRow() * @chrHgt
-        else if scrollTop > @lastScrollTop 
-          @setScroll @editorView.getLastVisibleScreenRow() * @chrHgt
-        @lastScrollTop = scrollTop
+        @lastScrnTopOfs ?= @scrnTopOfs + 1
+        if      @scrnTopOfs < @lastScrnTopOfs then @setScroll @scrnTopOfs
+        else if @scrnTopOfs > @lastScrnTopOfs then @setScroll @scrnBotOfs
+        @lastScrnTopOfs = @scrnTopOfs
   
   setScroll: (scrnPosPix) ->
+    log 'setScroll', scrnPosPix
+    
     scrnPosPix = Math.max 0, scrnPosPix
     lastMapping = null
     for mapping, idx in @map
@@ -63,15 +60,14 @@ module.exports =
         pix1 = topPix
         pix2 = botPix
         break
-      lastMapping = mapping  
+      lastMapping = mapping
       
-    scrnTopRow     = @editorView.getFirstVisibleScreenRow()
     scrnTopSpanRow = row1
     scrnSpanHgtRow = (row2 - row1)
     spanFrac       = Math.max 0, Math.min 1, 
         (scrnPosPix - scrnTopSpanRow * @chrHgt) / (scrnSpanHgtRow * @chrHgt)
         
+    visOfs    = scrnPosPix - @scrnTopOfs
     pvwPosPix = pix1 + (pix2 - pix1) * spanFrac
-    visOfs    = scrnPosPix - scrnTopRow * @chrHgt
     @previewEle.scrollTop = pvwPosPix - visOfs
       

@@ -8,7 +8,7 @@ log = (args...) ->
 module.exports =
 
   getVisTopHgtBot: ->
-    {top:@edtTopBnd, bottom:@edtBotBnd} = @editorView.getBoundingClientRect()
+    {top: @edtTopBnd, bottom: edtBotBnd} = @editorView.getBoundingClientRect()
     lineEles = @editorView.shadowRoot.querySelectorAll '.lines .line'
     lines = []
     for lineEle in lineEles
@@ -17,15 +17,13 @@ module.exports =
     lines.sort()
     [firstRow, firstTopBnd] = lines[0]
     @scrnTopOfs = (firstRow * @chrHgt) - (firstTopBnd - @edtTopBnd)
-    @scrnHeight = @edtBotBnd - @edtTopBnd
-    @scrnBotOfs = @scrnTopOfs + @scrnHeight
+    @scrnBotOfs = @scrnTopOfs + (edtBotBnd - @edtTopBnd)
     
-    {top: @pvwTopBnd, bottom: @pvwBotBnd} = @previewEle.getBoundingClientRect()
+    {top: @pvwTopBnd, bottom: pvwBotBnd} = @previewEle.getBoundingClientRect()
     @previewTopOfs = @previewEle.scrollTop
-    @previewHeight = @pvwBotBnd - @pvwTopBnd
-    @previewBotOfs = @previewTopOfs + @previewHeight
+    @previewBotOfs = @previewTopOfs + (pvwBotBnd - @pvwTopBnd)
     log 'getVisTopHgtBot', 
-      {@scrnTopOfs, @scrnHeight, @scrnBotOfs, @previewTopOfs, @previewHeight, @previewBotOfs}
+      {@scrnTopOfs, @scrnBotOfs, @previewTopOfs, @previewBotOfs}
   
   getEleTopHgtBot: (ele, scrn = yes) ->
     {top:eleTopBnd, bottom: eleBotBnd} = ele.getBoundingClientRect()
