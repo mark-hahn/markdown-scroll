@@ -54,36 +54,38 @@ module.exports =
     timings['node match'] = Date.now() - start; start = Date.now()
     
     @map = [[0,0,0,0]]
-    lastTopPix = lastBotPix = lastTopRow = lastBotRow = 0
+    @lastTopPix = @lastBotPix = @lastTopRow = @lastBotRow = 0
     firstNode = yes
     
     addNodeToMap = (node) =>
       [topPix, botPix, topRow, botRow] = node
-      if topPix <  lastBotPix or
-         topRow <= lastBotRow
-        lastTopPix = Math.min topPix, lastTopPix
-        lastBotPix = Math.max botPix, lastBotPix
-        lastTopRow = Math.min topRow, lastTopRow
-        lastBotRow = Math.max botRow, lastBotRow
+      if topPix <  @lastBotPix or
+         topRow <= @lastBotRow
+        @lastTopPix = Math.min topPix, @lastTopPix
+        @lastBotPix = Math.max botPix, @lastBotPix
+        @lastTopRow = Math.min topRow, @lastTopRow
+        @lastBotRow = Math.max botRow, @lastBotRow
         @map[@map.length - 1] = 
-          [lastTopPix, lastBotPix, lastTopRow, lastBotRow]
+          [@lastTopPix, @lastBotPix, @lastTopRow, @lastBotRow]
       else
         if firstNode
           @map[0][1] = topPix
           @map[0][3] = Math.max 0, topRow - 1
-        @map.push [lastTopPix = topPix,
-                   lastBotPix = botPix, 
-                   lastTopRow = topRow, 
-                   lastBotRow = botRow]
+        @map.push [@lastTopPix = topPix,
+                   @lastBotPix = botPix, 
+                   @lastTopRow = topRow, 
+                   @lastBotRow = botRow]
       firstNode = no
       
     for node in @nodes when node[2] isnt null
       addNodeToMap node
     
     botRow = @editor.getLastScreenRow()
-    topRow = Math.min  botRow, lastBotRow + 1
-    addNodeToMap [lastBotPix, @previewEle.scrollHeight, topRow, botRow]
-              
+    topRow = Math.min  botRow, @lastBotRow + 1
+    addNodeToMap [@lastBotPix, @previewEle.scrollHeight, topRow, botRow]
+    
+    @nodes = null
+      
     # timings['map merge'] = Date.now() - start; start = Date.now()
     # str = ''
     # for k, v of timings then str +=  '  ' + k + ': ' + v

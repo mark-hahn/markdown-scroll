@@ -4,10 +4,11 @@
 
 log = (args...) -> 
   console.log.apply console, ['markdown-scroll, scroll:'].concat args
+  args[0]
 
 module.exports =
   
-  chkScroll: (eventType) -> 
+  chkScroll: (eventType, auto) -> 
     if @scrollTimeout
       clearTimeout @scrollTimeout
       @scrollTimeout = null
@@ -33,39 +34,45 @@ module.exports =
              @setScroll cursorOfs
         else @setScroll @scrnTopOfs
           
-      when 'changed', 'cursorMoved'
+      when 'changed', 'cursorMoved' 
         @setScroll @editor.getCursorScreenPosition().row * @chrHgt
+        @ignoreScrnScrollUntil = Date.now() + 500
       
       when 'newtop'
+        if @ignoreScrnScrollUntil and
+           Date.now() < @ignoreScrnScrollUntil then break
+        @ignoreScrnScrollUntil = null
         scrollFrac = @scrnTopOfs / (@scrnScrollHgt - @scrnHeight)
         @setScroll   @scrnTopOfs + (@scrnHeight * scrollFrac)
-        @scrollTimeout = setTimeout (=> @chkScroll 'newtop'), 300
+        if not auto
+          @scrollTimeout = setTimeout (=> @chkScroll 'newtop', yes), 300
   
   setScroll: (scrnPosPix) ->
     scrnPosPix = Math.max 0, scrnPosPix
     lastMapping = null
     for mapping, idx in @map
       [topPix, botPix, topRow, botRow] = mapping
-      if scrnPosPix < topRow * @chrHgt
-        row1 = lastMapping[3] + 1
-        row2 = topRow
-        pix1 = lastMapping[1]
-        pix2 = topPix
-        break
-      else if scrnPosPix < (botRow+1) * @chrHgt
+      if (topRow * @chrHgt) <= scrnPosPix < ((botRow+1) * @chrHgt) or 
+          idx is @map.length - 1
         row1 = topRow
         row2 = botRow + 1
         pix1 = topPix
         pix2 = botPix
-        break
+        break      
+      else
+        lastMapping ?= mapping
+        lastBotPix = lastMapping[1]
+        lastBotRow = lastMapping[3] + 1
+        if (lastBotRow * @chrHgt) <= scrnPosPix < (topRow * @chrHgt)
+          row1 = lastBotRow
+          row2 = topRow
+          pix1 = lastBotPix
+          pix2 = topPix
+          break
       lastMapping = mapping
       
-    scrnTopSpanRow = row1
-    scrnSpanHgtRow = (row2 - row1)
-    spanFrac       = Math.max 0, Math.min 1, 
-        (scrnPosPix - scrnTopSpanRow * @chrHgt) / (scrnSpanHgtRow * @chrHgt)
-        
-    visOfs    = scrnPosPix - @scrnTopOfs
-    pvwPosPix = pix1 + (pix2 - pix1) * spanFrac
+    spanFrac  = (scrnPosPix - (row1 * @chrHgt)) / ((row2 - row1) * @chrHgt)
+    visOfs    =  scrnPosPix - @scrnTopOfs
+    pvwPosPix = pix1 + ((pix2 - pix1) * spanFrac)
     @previewEle.scrollTop = pvwPosPix - visOfs
-      
+    

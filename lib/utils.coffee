@@ -9,21 +9,24 @@ module.exports =
 
   getVisTopHgtBot: ->
     {top: @edtTopBnd, bottom: edtBotBnd} = @editorView.getBoundingClientRect()
-    lineEles = @editorView.shadowRoot.querySelectorAll '.lines .line'
+    lineEles = @editorView.shadowRoot.querySelectorAll '.lines .line[data-screen-row]'
     lines = []
     for lineEle in lineEles
-      {top:linTopBnd, bottom:linBotBnd} = lineEle.getBoundingClientRect()
-      lines.push [+lineEle.getAttribute('data-screen-row'), linTopBnd, linBotBnd]
+      {top: lineTopBnd} = lineEle.getBoundingClientRect()
+      lines.push [+lineEle.getAttribute('data-screen-row'), lineTopBnd]
     if lines.length is 0
       log 'no visible lines in editor'
       @scrnTopOfs = @scrnBotOfs = @pvwTopB = @previewTopOfs = @previewBotOfs = 0
       return
     lines.sort()
-    [firstRow, firstTopBnd] = lines[0]
-    @scrnTopOfs = (firstRow * @chrHgt) - (firstTopBnd - @edtTopBnd)
+    for refLine in lines
+      if refLine[1] >= @edtTopBnd then break
+    [refRow, refTopBnd] = refLine
+    @scrnTopOfs = (refRow * @chrHgt) - (refTopBnd - @edtTopBnd)
     @scrnHeight = edtBotBnd - @edtTopBnd
     @scrnBotOfs = @scrnTopOfs + @scrnHeight
-    @scrnScrollHgt = @editorView.getScrollHeight()
+    botScrnScrollRow = @editor.clipScreenPosition([9e9, 9e9]).row
+    @scrnScrollHgt = (botScrnScrollRow + 1) * @chrHgt
     
     {top: @pvwTopBnd, bottom: pvwBotBnd} = @previewEle.getBoundingClientRect()
     @previewTopOfs = @previewEle.scrollTop
